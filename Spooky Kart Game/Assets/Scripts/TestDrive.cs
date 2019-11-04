@@ -4,37 +4,28 @@ using UnityEngine;
 
 public class TestDrive : MonoBehaviour
 {
-    public float speed = 5.0f; //Speed of kart
-    public float rotSpeed = 5.0f;  //Rotation speed of kart
+    public float thrust;
+    public Rigidbody rb;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        rb = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
+        //Get input
+        float transf = Input.GetAxis("Vertical") * thrust;
+        float rotate = Input.GetAxis("Horizontal") * thrust;
+
         //Make kart respond to key presses
-        if (Input.GetKey(KeyCode.W))    //^
-        {
-            transform.Translate(Vector3.forward * Time.deltaTime * speed, Space.Self);
-        }
+        rb.AddForce(rotate, 0, transf, ForceMode.VelocityChange);
+        transform.Rotate(Vector3.up * Time.deltaTime * rotate * 10, Space.Self);
 
-        if (Input.GetKey(KeyCode.S))   //v
-        {
-            transform.Translate(Vector3.forward * Time.deltaTime * -speed, Space.Self);
-        }
-
-        if (Input.GetKey(KeyCode.A))   //<
-        {
-            transform.Rotate(Vector3.up * Time.deltaTime * -rotSpeed, Space.Self);
-        }
-
-        if (Input.GetKey(KeyCode.D))   //>
-        {
-            transform.Rotate(Vector3.up * Time.deltaTime * rotSpeed, Space.Self);
-        }
+        //Adjust direction
+        Vector3 veloc = new Vector3(rb.velocity.x, transform.position.y, rb.velocity.z);
+        transform.LookAt(transform.position + rb.velocity);
     }
 }
