@@ -5,12 +5,18 @@ using UnityEngine;
 public class TestDrive : MonoBehaviour
 {
     public float thrust;
+    public float turnSpeed;
     public Rigidbody rb;
+    public Collider coll;
+    Vector3 eulerAngVelo;
+    float distToGround;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        coll = GetComponent<Collider>();
+        distToGround = coll.bounds.extents.y;
     }
 
     // Update is called once per frame
@@ -18,14 +24,22 @@ public class TestDrive : MonoBehaviour
     {
         //Get input
         float transf = Input.GetAxis("Vertical") * thrust;
-        float rotate = Input.GetAxis("Horizontal") * thrust;
+        float rotate = Input.GetAxis("Horizontal") * turnSpeed;
+
+        //Set up Quaternion
+        eulerAngVelo = new Vector3(0, rotate, 0);
+        Quaternion deltaRotation = Quaternion.Euler(eulerAngVelo * Time.deltaTime);
 
         //Make kart respond to key presses
-        rb.AddForce(rotate, 0, transf, ForceMode.VelocityChange);
-        transform.Rotate(Vector3.up * Time.deltaTime * rotate * 10, Space.Self);
+        if (isGrounded())  //Makes sure kart is on ground
+        {
+            rb.AddForce(transform.forward * transf, ForceMode.VelocityChange);
+            rb.MoveRotation(rb.rotation * deltaRotation);
+        }
+    }
 
-        //Adjust direction
-        Vector3 veloc = new Vector3(rb.velocity.x, transform.position.y, rb.velocity.z);
-        transform.LookAt(transform.position + rb.velocity);
+    bool isGrounded()
+    {
+        return Physics.Raycast(transform.position, -Vector3.up, distToGround + 0.1f);
     }
 }
